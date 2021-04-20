@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+      body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+      #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+      #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+      #input:focus { outline: none; }
+      #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+      #messages { list-style-type: none; margin: 0; padding: 0; }
+      #messages > li { padding: 0.5rem 1rem; }
+      #messages > li:nth-child(odd) { background: #efefef; }
+      p {text-align:center;}
+    </style>
+  </head>
+  <body>
+    <!--Þetta er svæðið sem teljarinn átti að vera á-->
+    <p id=p1></p>
+    <p id="users"></p>
+
+    <div id="nickDiv">
+      <p></p>
+      <form id="setNick">
+        <input id="nickname" autocomplete="off" /><button>Send</button>
+      </form>
+    </div>
+
+
+    <div id="content" style="display:none;">
+      <ul id="messages"></ul>
+      <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Send</button>
+      </form>
+   </div>
+
+    <script src="/socket.io/socket.io.js">
+    </script>
+    <script>
+      var socket = io();
+
+      var messages = document.getElementById('messages');
+      var form = document.getElementById('form');
+      var input = document.getElementById('input');
+
+      var nickForm = document.getElementById('setNick');
+      var nickBox = document.getElementById('nickname');
+      var users = document.getElementById('users');
+
+
+      nickForm.addEventListener('submit',function(event){
+        event.preventDefault();
+        if(nickname.value){
+          var x = document.getElementById("nickDiv");
+          var y = document.getElementById("content");
+          y.style.display = "block";
+          x.style.display = "none";
+          socket.emit('nickname', nickname.value);
+        }
+      });
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit('chat message', input.value);
+          input.value = '';
+          document.getElementById("p1").innerHTML = '';
+       }
+     });
+
+      form.addEventListener('keydown', function(e){
+        if (input.value){
+          socket.emit('typing', input.value);
+        }
+        //else {document.getElementById("p1").innerHTML = '';}
+
+      });
+
+      socket.on('usernames', function(data){
+        var fólk = '';
+        for (i=0; i < data.length; i++){
+          fólk += data[i] + '; '
+        }
+        document.getElementById("users").innerHTML = "users: " + fólk ;
+      })
+
+      //Þetta var til þess að update-a hvað það voru margir inná síðunni
+      /*socket.on('clientsChange', function(clients) {
+        document.getElementById("p1").innerHTML = "Clients:" + clients;
+      });*/
+
+      socket.on('chat message', function(data) {
+        var msg = data.msg;
+        if (data.name === undefined){
+          var id = '';
+        }
+        else{
+          var id = data.name + ": ";         
+        }
+        var item = document.createElement('li');
+        item.textContent = id + msg;
+        messages.appendChild(item);
+        window.scrollTo(0, document.body.scrollHeight);
+        document.getElementById("p1").innerHTML = '';
+      });
+
+      socket.on('typing', (data) =>{
+        if (data.data.length > 1){
+          document.getElementById("p1").innerHTML = data.name + ' is typing...' + '<br>';}
+        else {document.getElementById("p1").innerHTML = '';}
+      });
+      
+    </script>
+  </body>
+</html>
+
