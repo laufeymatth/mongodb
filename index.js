@@ -1,3 +1,6 @@
+var MongoClient = require('mongodb').MongoClient;
+var url = "mongodb://localhost:27017/";
+
 const app = require('express')();
 const http = require('http').createServer(app);
 const io = require('socket.io')(http);
@@ -12,6 +15,15 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) =>{
 	updateNicknames();
 	console.log('a user connected');
+	MongoClient.connect(url, function(err, db) {
+	  if (err) throw err;
+	  var dbo = db.db("chatServer");
+	  dbo.collection("skilaboð").find({}).toArray((err, result) =>{
+	  	if (err) throw err;
+	    console.log(result);
+	    socket.emit('chat_init', result);
+	  });
+	});
 	/*clients++;
 	io.sockets.emit('clientsChange', clients);*/
 	socket.on('disconnect', () =>{
@@ -34,6 +46,17 @@ io.on('connection', (socket) =>{
 
 	socket.on('chat message', (msg) => {
 		io.emit('chat message', {msg:msg, name: socket.nickname});
+		MongoClient.connect(url, function(err, db) {
+		  if (err) throw err;
+		  var dbo = db.db("chatServer");
+		  var skilaboð = { user: socket.nickname, message: msg};
+		  //create collection called customers
+		  dbo.collection("skilaboð").insertOne(skilaboð, function(err, res){
+		  	if (err) throw err;
+		  })
+		  console.log("1 document inserted");
+		  db.close();
+		});
 	});
 
 	function updateNicknames(){

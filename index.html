@@ -78,6 +78,16 @@
 
       });
 
+      socket.on('chat_init', function(chat_log){
+        for (i = 0; i < chat_log.length; i++) {
+          //alert(chat_log[i].message); 
+          var item = document.createElement('li');
+          item.textContent = chat_log[i].user + ': ' + chat_log[i].message;
+          messages.appendChild(item);
+          window.scrollTo(0, document.body.scrollHeight);
+        }
+      });
+
       socket.on('usernames', function(data){
         var fólk = '';
         for (i=0; i < data.length; i++){
@@ -111,6 +121,8 @@
           document.getElementById("p1").innerHTML = data.name + ' is typing...' + '<br>';}
         else {document.getElementById("p1").innerHTML = '';}
       });
+
+
       
     </script>
   </body>
