@@ -33,6 +33,7 @@
       <ul id="messages"></ul>
       <form id="form" action="">
       <input id="input" autocomplete="off" /><button>Send</button>
+      <input id="input2" autocomplete="off" /><button id="nota">Nota</button><button id="tilBaka">Til baka</button>
       </form>
    </div>
 
@@ -44,6 +45,10 @@
       var messages = document.getElementById('messages');
       var form = document.getElementById('form');
       var input = document.getElementById('input');
+
+      var input2 = document.getElementById('input2');
+      var nota = document.getElementById('nota');
+      var tilBaka = document.getElementById('tilBaka');
 
       var nickForm = document.getElementById('setNick');
       var nickBox = document.getElementById('nickname');
@@ -59,6 +64,18 @@
           x.style.display = "none";
           socket.emit('nickname', nickname.value);
         }
+      });
+
+      nota.addEventListener('click', function(e){
+        alert('bitch');
+        if (input2.value){
+
+          socket.emit('filter', input2.value);
+        }
+      });
+
+      tilBaka.addEventListener('click', function (e){
+        socket.emit('tilBaka', event);
       });
 
       form.addEventListener('submit', function(e) {
@@ -88,6 +105,16 @@
         }
       });
 
+      socket.on('filter', function(data){
+        document.getElementById('messages').innerHTML = '';
+        for (i = 0; i < data.length; i++){
+          var item = document.createElement('li');
+          item.textContent = data[i].user + ': ' + data[i].message;
+          messages.appendChild(item);
+          window.scrollTo(0, document.body.scrollHeight);
+        }
+      });
+
       socket.on('usernames', function(data){
         var fólk = '';
         for (i=0; i < data.length; i++){
@@ -96,13 +123,10 @@
         document.getElementById("users").innerHTML = "users: " + fólk ;
       })
 
-      //Þetta var til þess að update-a hvað það voru margir inná síðunni
-      /*socket.on('clientsChange', function(clients) {
-        document.getElementById("p1").innerHTML = "Clients:" + clients;
-      });*/
 
       socket.on('chat message', function(data) {
         var msg = data.msg;
+
         if (data.name === undefined){
           var id = '';
         }

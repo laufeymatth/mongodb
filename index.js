@@ -15,15 +15,7 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) =>{
 	updateNicknames();
 	console.log('a user connected');
-	MongoClient.connect(url, function(err, db) {
-	  if (err) throw err;
-	  var dbo = db.db("chatServer");
-	  dbo.collection("skilaboð").find({}).toArray((err, result) =>{
-	  	if (err) throw err;
-	    console.log(result);
-	    socket.emit('chat_init', result);
-	  });
-	});
+	gömulSkilaboð();
 	/*clients++;
 	io.sockets.emit('clientsChange', clients);*/
 	socket.on('disconnect', () =>{
@@ -38,6 +30,34 @@ io.on('connection', (socket) =>{
 		socket.nickname = data;	
 		people.push(socket.nickname);
 		updateNicknames();	
+	});
+
+	socket.on('tilBaka', (e) =>{
+		gömulSkilaboð();
+	})
+
+	function gömulSkilaboð(){
+		  MongoClient.connect(url, function(err, db) {
+		  if (err) throw err;
+		  var dbo = db.db("chatServer");
+		  dbo.collection("skilaboð").find({}).toArray((err, result) =>{
+		  	if (err) throw err;
+		    console.log(result);
+		    socket.emit('chat_init', result);
+		   });
+		});
+	}
+
+	socket.on('filter', (data) => {
+		MongoClient.connect(url, function(err, db){
+			if (err) throw err;
+			var dbo = db.db("chatServer");
+			dbo.collection("skilaboð").find({'user': data}).toArray((err, result) =>{
+				if (err) throw err;
+				console.log(result);
+				socket.emit('filter', result);
+			});
+		});
 	});
 
 	socket.on('typing', (data) => {
