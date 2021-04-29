@@ -49,6 +49,8 @@
       var input2 = document.getElementById('input2');
       var nota = document.getElementById('nota');
       var tilBaka = document.getElementById('tilBaka');
+      var filterNafn = '';
+      var þittNafn = '';
 
       var nickForm = document.getElementById('setNick');
       var nickBox = document.getElementById('nickname');
@@ -62,19 +64,20 @@
           var y = document.getElementById("content");
           y.style.display = "block";
           x.style.display = "none";
+          þittNafn = nickname.value;
           socket.emit('nickname', nickname.value);
         }
       });
 
       nota.addEventListener('click', function(e){
-        alert('bitch');
         if (input2.value){
-
+          filterNafn = input2.value;
           socket.emit('filter', input2.value);
         }
       });
 
       tilBaka.addEventListener('click', function (e){
+        filterNafn = '';
         socket.emit('tilBaka', event);
       });
 
@@ -96,6 +99,7 @@
       });
 
       socket.on('chat_init', function(chat_log){
+        document.getElementById('messages').innerHTML = '';
         for (i = 0; i < chat_log.length; i++) {
           //alert(chat_log[i].message); 
           var item = document.createElement('li');
@@ -121,7 +125,7 @@
           fólk += data[i] + '; '
         }
         document.getElementById("users").innerHTML = "users: " + fólk ;
-      })
+      });
 
 
       socket.on('chat message', function(data) {
@@ -133,11 +137,13 @@
         else{
           var id = data.name + ": ";         
         }
-        var item = document.createElement('li');
-        item.textContent = id + msg;
-        messages.appendChild(item);
-        window.scrollTo(0, document.body.scrollHeight);
-        document.getElementById("p1").innerHTML = '';
+        if(filterNafn == '' || filterNafn + ": " == id || þittNafn + ": " == id){
+          var item = document.createElement('li');
+          item.textContent = id + msg;
+          messages.appendChild(item);
+          window.scrollTo(0, document.body.scrollHeight);
+          document.getElementById("p1").innerHTML = '';
+        }
       });
 
       socket.on('typing', (data) =>{
