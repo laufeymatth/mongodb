@@ -73,6 +73,7 @@
         if (input2.value){
           filterNafn = input2.value;
           socket.emit('filter', input2.value);
+          input2.value = '';
         }
       });
 
